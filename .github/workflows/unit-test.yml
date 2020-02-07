@@ -20,5 +20,9 @@ jobs:
 
       - name: Run Test
         run: ./gradlew test
-
-
+      - name: publish snapshot
+        if: github.event_name =='push'
+        run: ./gradlew publishGprPublicationToSnapshotRepository
+        env:
+          SNAPSHOT_USERNAME: ${{ secrets.SNAPSHOT_USERNAME }}
+          SNAPSHOT_PASSWORD: ${{ secrets.SNAPSHOT_PASSWORD }}

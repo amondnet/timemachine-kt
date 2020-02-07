@@ -3,9 +3,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     val kotlinVersion: String by System.getProperties()
     kotlin("jvm") version kotlinVersion
-}
+    `maven-publish`
+    id("org.jetbrains.dokka") version "0.10.0" }
 
-group = "net.amond.timemachine"
+group = "dev.amond.timemachine"
 version = "1.0.0-SNAPSHOT"
 
 repositories {
@@ -32,5 +33,41 @@ tasks.withType<Test> {
     useJUnitPlatform ()
     testLogging {
         events("passed", "skipped", "failed")
+    }
+}
+tasks.dokka {
+    outputFormat = "html"
+    outputDirectory = "$buildDir/javadoc"
+}
+val dokkaJar by tasks.creating(Jar::class) {
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
+    description = "Assembles Kotlin docs with Dokka"
+    classifier = "javadoc"
+    from(tasks.dokka)
+}
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/amondnet/timemachine-kt")
+            credentials {
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+        maven {
+            name = "snapshot"
+            url = uri("https://nexus.dietfriends.kr/repository/maven-snapshots/")
+            credentials {
+                username = project.findProperty("snapshot.user") as String? ?: System.getenv("SNAPSHOT_USERNAME")
+                password = project.findProperty("snapshot.password") as String? ?: System.getenv("SNAPSHOT_PASSWORD")
+            }
+        }
+    }
+    publications {
+        register<MavenPublication>("gpr") {
+            from(components["java"])
+            artifact(dokkaJar)
+        }
     }
 }

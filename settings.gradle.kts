@@ -1,2 +1,2 @@
-rootProject.name = "timemachine-kt"
+rootProject.name = "timemachine"
 
